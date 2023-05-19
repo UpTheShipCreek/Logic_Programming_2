@@ -10,17 +10,6 @@ index(Index,[_|List],Element):-
     Index0 #= Index - 1,
     index(Index0,List,Element).
 
-insert_at(E,[],_,[E]).
-insert_at(Element, List, Index, New) :-
-  length(List, Length),
-  Index > Length,
-  append(List, [Element], New),!.
-insert_at(Element, List, Index, New) :-
-  I0 is (Index-1),
-  length(EmptyL,I0),
-  append(EmptyL,[_|C], List),
-  append(EmptyL,[Element|C],New).
-
 count_to(N,N).
 count_to(C,N):-
     N>1,
@@ -46,12 +35,15 @@ print_grid_row([X|Xs]) :-
 %index of an element in a list starting from 1
 
 skyscr(PuzzleId, Grid):-
+    %getting the parameters
     puzzle(PuzzleId,N,VerticalLeftCon,VerticalRightCon,HorizontalTopCon,HorizontalBottomCon,Grid),
     %domain 
     Grid::1..N, 
     %constraints
-    maxtrix_rows_constraints(Grid,VerticalLeftCon,VerticalRightCon), 
-    maxtrix_column_constraints(Grid,HorizontalTopCon,HorizontalBottomCon), 
+    matrix_rows_constraints(Grid,VerticalLeftCon,VerticalRightCon), 
+    write("Past row constraints"),nl,
+    matrix_column_constraints(Grid,HorizontalTopCon,HorizontalBottomCon), 
+    write("Past column constraints"),nl,
     %search
     labeling(Grid).
 
@@ -100,18 +92,29 @@ row_to_possible_max(Length,N,Row,SoFarList,MaxList):-
     N1 #= N + 1,
     row_to_possible_max(Length,N1,Row,[Element|SoFarList],MaxList).
 
+row_constraints(Row,0):-
+    ic:alldifferent(Row).
 row_constraints(Row,NumberofVisibleSkyscr):- %essentially this is the visible skyscrapers constraint
-    row_to_possible_max(Row,MaxList),
+    %all different constraint 
+    ic:alldifferent(Row), 
+    %visible skyscrapers constraints
+    row_to_possible_max(Row,MaxList), 
     nvalue(NumberofVisibleSkyscr,MaxList).
 
-maxtrix_rows_constraints([Row|Matrix],[VL|VerticalLeftCon],[VR|VerticalRightCon]):- %visible skyscraper constraint from all rows in the matrix, both ways
-    ic:alldifferent(Row),
+matrix_rows_constraints([],[],[]):-!.
+matrix_rows_constraints([Row|Matrix],[VL|VerticalLeftCon],[VR|VerticalRightCon]):- %visible skyscraper constraint from all rows in the matrix, both ways
+    length([Row|Matrix],Length),
+    write("Length "),write(Length),nl,
     row_constraints(Row,VL),
+    %write("Past the left to right constraints"),nl,
     reverse(Row,ReverseRow),
     row_constraints(ReverseRow,VR),
-    maxtrix_rows_constraints(Matrix,VerticalLeftCon,VerticalRightCon).
+    matrix_rows_constraints(Matrix,VerticalLeftCon,VerticalRightCon).
 
 matrix_column_constraints(Matrix,HorizontalTopCon,HorizontalBottomCon):- %constraints for the columns aka the rows of the transposed matrix
-    matrix_transpose(Matrix,Transpose),
-    maxtrix_rows_constraints(Transpose,HorizontalTopCon,HorizontalBottomCon).
+    length(Matrix,N),
+    write("I bet this is the last message I can see"),nl,
+    matrix_transpose(N,Matrix,Transpose),
+    write("I think it is failing here"),nl,
+    matrix_rows_constraints(Transpose,HorizontalTopCon,HorizontalBottomCon).
     
