@@ -41,9 +41,9 @@ skyscr(PuzzleId, Grid):-
     Grid::1..N, 
     %constraints
     matrix_rows_constraints(Grid,VerticalLeftCon,VerticalRightCon), 
-    write("Past row constraints"),nl,
+    %write("Past row constraints"),nl,
     matrix_column_constraints(Grid,HorizontalTopCon,HorizontalBottomCon), 
-    write("Past column constraints"),nl,
+    %write("Past column constraints"),nl,
     %search
     labeling(Grid).
 
@@ -62,19 +62,20 @@ create_an_empty_square_matrix(N,C,[Row|RestMatrix]):-
     create_an_empty_square_matrix(N,C0,RestMatrix).
 
 matrix_transpose(N,Matrix,Transpose):-
-    create_an_empty_square_matrix(N,Transpose),matrix_transpose(N,Matrix,Matrix,Transpose),!.
+    create_an_empty_square_matrix(N,Transpose),
+    matrix_transpose(N,Matrix,Matrix,Transpose),!.
 matrix_transpose(_,_,[],_).
 matrix_transpose(N,Matrix,[Row|RestMatrix],Transpose):-
     row_transpose(N,Row,Transpose),
     matrix_transpose(N,Matrix,RestMatrix,Transpose).
-
+    
 row_transpose(_,[],_).
 row_transpose(N,[Element|Row],Transpose):-
     length([Element|Row],Length), %seeing how many elements are left from that row 
     TransposeRowIndex #= N - Length + 1, %calculating the row index in the transpose matrix
     index(TransposeRowIndex,Transpose,TransposeRow), %fetching the correct row
     member(Element,TransposeRow), %pushing the element 
-    row_transpose(N,Row,Transpose). %recursive call
+    row_transpose(N,Row,Transpose),!. %recursive call
 
 first_n(0,_,[]):-!. %creates a list using the first N elements of another
 first_n(N,[Element|List],[Element|FirstNList]):-
@@ -104,17 +105,32 @@ row_constraints(Row,NumberofVisibleSkyscr):- %essentially this is the visible sk
 matrix_rows_constraints([],[],[]):-!.
 matrix_rows_constraints([Row|Matrix],[VL|VerticalLeftCon],[VR|VerticalRightCon]):- %visible skyscraper constraint from all rows in the matrix, both ways
     length([Row|Matrix],Length),
-    write("Length "),write(Length),nl,
+    %write("Length "),write(Length),nl,
     row_constraints(Row,VL),
     %write("Past the left to right constraints"),nl,
     reverse(Row,ReverseRow),
     row_constraints(ReverseRow,VR),
     matrix_rows_constraints(Matrix,VerticalLeftCon,VerticalRightCon).
 
+transpose(N,Matrix,Transpose):-
+    flatten(Matrix,Flat),
+    create_an_empty_square_matrix(N,Transpose),
+    transpose(N,0,Matrix,Flat,Transpose),!.
+transpose(_,_,_,[],_).
+transpose(N,Counter,Matrix,[Element|RestFlat],Transpose):-
+    div(Counter,N,IndexCounter),
+    mod(Counter,N,RowCounter),
+    TransposedIndex is IndexCounter + 1,
+    TransposedRowIndex is RowCounter + 1,
+    index(TransposedRowIndex,Transpose,TransposedRow),
+    element(TransposedIndex,TransposedRow,Element),!,
+    C1 is Counter + 1,
+    transpose(N,C1,Matrix,RestFlat,Transpose).
+
 matrix_column_constraints(Matrix,HorizontalTopCon,HorizontalBottomCon):- %constraints for the columns aka the rows of the transposed matrix
     length(Matrix,N),
-    write("I bet this is the last message I can see"),nl,
-    matrix_transpose(N,Matrix,Transpose),
-    write("I think it is failing here"),nl,
+    %write("I bet this is the last message I can see"),nl,
+    transpose(N,Matrix,Transpose),
+    %write("I think it is failing here"),nl,
     matrix_rows_constraints(Transpose,HorizontalTopCon,HorizontalBottomCon).
     
