@@ -1,5 +1,4 @@
-:-lib(ic).
-:-lib(ic_global).
+:-lib(gfd).
 
 head([H|_],H).
 tail([_|T],T).
@@ -16,17 +15,27 @@ count_to(C,N):-
     N0 is N - 1,
     count_to(C,N0).
 
+get_greater(X,Y,X):-
+    X #>= Y.
+get_greater(X,Y,Y):-
+    X #< Y.
+    
 skyscr(PuzzleId, Grid):-
     %getting the parameters
     puzzle(PuzzleId,N,VerticalLeftCon,VerticalRightCon,HorizontalTopCon,HorizontalBottomCon,Grid),
+    %write("Got the puzzle"),nl,
     %domain 
-    Grid::1..N, 
+    Grid :: 1..N, 
+    %write("Gave the domain to the grid"), nl,
     %constraints
     matrix_rows_constraints(Grid,VerticalLeftCon,VerticalRightCon), 
+    %write("Passed matrix row constraints"),nl,
     matrix_column_constraints(Grid,HorizontalTopCon,HorizontalBottomCon), 
+    %write("Passed matrix column constraints"),nl,
     %search
     flatten(Grid,FlattenedGrid),
-    search(FlattenedGrid,0,input_order,indomain,complete,[]).
+    %search(L,0,input_order,indomain,complete,[]).
+    search(FlattenedGrid,0,input_order,indomain,complete,[]),!.
 
 create_an_empty_square_matrix(N,EmptyMatrix):-
     create_an_empty_square_matrix(N,N,EmptyMatrix).
@@ -48,24 +57,28 @@ row_to_possible_max(Length,L,_,Reverse,MaxList):-
     reverse(Reverse,MaxList),!.
 row_to_possible_max(Length,N,Row,SoFarList,MaxList):-
     first_n(N,Row,FirstNElements),
-    ic:max(FirstNElements,Element),
+    gfd:max(FirstNElements,Element),
     N1 #= N + 1,
     row_to_possible_max(Length,N1,Row,[Element|SoFarList],MaxList).
 
 row_constraints(Row,0):-
-    ic:alldifferent(Row).
+    alldifferent(Row).
 row_constraints(Row,NumberofVisibleSkyscr):- %essentially this is the visible skyscrapers constraint
     %all different constraint 
-    ic:alldifferent(Row), 
+    alldifferent(Row), 
     %visible skyscrapers constraints
     row_to_possible_max(Row,MaxList), 
-    nvalue(NumberofVisibleSkyscr,MaxList).
+    nvalues(MaxList,(#=),NumberofVisibleSkyscr).
 
 matrix_rows_constraints([],[],[]):-!.
 matrix_rows_constraints([Row|Matrix],[VL|VerticalLeftCon],[VR|VerticalRightCon]):- %visible skyscraper constraint from all rows in the matrix, both ways
+    %write("Entring row constraints"),nl,
     row_constraints(Row,VL),
+    %write("Passed the constraints some row"),nl,
     reverse(Row,ReverseRow),
+    %write("Reversed the row"),nl,
     row_constraints(ReverseRow,VR),
+    %write("Passed the constraints for the reverse"),nl,
     matrix_rows_constraints(Matrix,VerticalLeftCon,VerticalRightCon).
 
 transpose(N,Matrix,Transpose):-
