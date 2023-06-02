@@ -1,0 +1,10 @@
+length([[1,2,3],[4,5,6]],NumberOfRows),length([1,2,3],NumberOfColumns),
+flatten([[1,2,3],[4,5,6]],Flat),create_grid(Transpose,NumberOfColumns,NumberOfRows),
+#helper
+head(Flat,Head)
+index(Index,Flat,1),mod(Index,NumberOfColumns,Row),Row\=0,index(Row,Transpose,R),member(1,R),!,
+index(Index2,Flat,2),mod(Index2,NumberOfColumns,Row2),Row2\=0,index(Row2,Transpose,R2),member(2,R2),!,
+index(Index3,Flat,3),mod(Index3,NumberOfColumns,Row3),Row3==0,index(3,Transpose,R3),member(3,R3),!,
+index(Index4,Flat,4),mod(Index4,NumberOfColumns,Row4),Row4\=0,index(Row4,Transpose,R4),member(4,R4),!,
+index(Index5,Flat,5),mod(Index5,NumberOfColumns,Row5),Row5\=0,index(Row5,Transpose,R5),member(5,R5),!,
+index(Index6,Flat,6),mod(Index6,NumberOfColumns,Row6),Row6==0,index(3,Transpose,R6),member(6,R6),!,helper_transpose(_,[],_,Transpose).
