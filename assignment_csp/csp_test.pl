@@ -15,10 +15,18 @@ index(Index,[_|List],Element):-
     Index0 #= Index - 1,
     index(Index0,List,Element).
 
-boolean_sheeve(Booleans,List,Remaining):-
-    length(Booleans,Number),
-    length(List,Number),
-    findall(Element,(element(Index,Booleans,1),element(Index,List,Element)),Remaining).
+%boolean_seave(Booleans,List,Remaining):-
+%    length(Booleans,Number),
+%    length(List,Number),
+%    findall(Element,(index(Index,List,Element),index(Index,Booleans,1)),Remaining).
+
+boolean_seave([],[],[]).
+boolean_seave([Bool|Booleans],[Element|List],[Element|Remaining]):-
+    Bool #= 1,
+    boolean_seave(Booleans,List,Remaining).
+boolean_seave([Bool|Booleans],[_|List],Remaining):-
+    Bool #\= 1,
+    boolean_seave(Booleans,List,Remaining).
 
 assignment_csp(NumberOfWorkers,MaxTime,Grid):-
     % Getting the size of the grid
@@ -37,27 +45,37 @@ assignment_csp(NumberOfWorkers,MaxTime,Grid):-
     transpose(NumberOfWorkers,NumberOfAllActivities,Grid,Transpose),
     columns_constraints(Transpose),
     write("-------------Column constraints------------------"),nl,
+    % Mirroring constraints
+    mirroring_constraints(Grid),
     % Search
     flatten(Grid,Flat),
     write("Flattened and going to search"),nl,
     search(Flat,0,input_order,indomain,complete,[]).
+
+mirroring_constraints([]).
+mirroring_constraints([B1|BooleansList]):- % we need to somehow express that row n can only get a true value only if row n-1 has taken a true value
+    (sumlist(B1,N1), N1 #> 0,mirroring_constraints(BooleansList)); % either the n - 1 worker has taken a job
+    (flatten(BooleansList,Flat),sumlist(Flat,N), N #= 0). % or no one further from n-1 has any jobs either
 
 columns_constraints([]).
 columns_constraints([Column|Rest]):-
     sumlist(Column,1),
     columns_constraints(Rest).
 
-row_constraints(Booleans,Activities,MaxTime):-
+row_constraints([Booleans|BooleansList],Activities,MaxTime):-
+    %member(Booleans,BooleansList),
     write("Scheduling constraints"),nl,
     row_scheduling_constraints(Booleans,Activities),
     write("Time constraints"),nl,
-    row_time_constraints(Booleans,Activities,MaxTime).
+    row_time_constraints(Booleans,Activities,MaxTime),
+    write("Recursive Call"),nl,
+    row_constraints(BooleansList,Activities,MaxTime).
 
 row_scheduling_constraints(Booleans,Activities):-
-    write("Going into the sheeve with "),write(Booleans),write(" "),write(Activities),
-    nl,
-    boolean_sheeve(Booleans,Activities,RemainingActivities),
-    write(RemainingActivities),nl,
+    write("Going into the seave with "),%write(Booleans),write(" "),write(Activities),
+    %nl,
+    boolean_seave(Booleans,Activities,RemainingActivities),
+    %write(RemainingActivities),nl,
     plausible_activities(RemainingActivities).
 
 plausible_activities([]).
@@ -66,8 +84,11 @@ plausible_activities([activity(_, act(_,End1)),activity(_, act(Start2,End2))|Res
     Start2 #> End1,
     plausible_activities([activity(_, act(Start2,End2))|Rest]),!.
 
+row_time_constraints([],_,T):-
+    T#>=0.
 row_time_constraints([Bool|Row],[Activity|RestActivities],Time):-
     Time #>= 0,
+    %write(Time), nl,
     activity_duration(Activity,Duration),
     RemainingTime #= Time - (Bool*Duration),
     row_time_constraints(Row,RestActivities,RemainingTime).
