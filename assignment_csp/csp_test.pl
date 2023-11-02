@@ -15,11 +15,6 @@ index(Index,[_|List],Element):-
     Index0 #= Index - 1,
     index(Index0,List,Element).
 
-%boolean_seave(Booleans,List,Remaining):-
-%    length(Booleans,Number),
-%    length(List,Number),
-%    findall(Element,(index(Index,List,Element),index(Index,Booleans,1)),Remaining).
-
 boolean_seave([],[],[]).
 boolean_seave([Bool|Booleans],[Element|List],[Element|Remaining]):-
     Bool #= 1,
@@ -33,24 +28,28 @@ assignment_csp(NumberOfWorkers,MaxTime,Grid):-
     findall(activity(Name,act(Start,End)),activity(Name,act(Start,End)),AllActivities),
     length(AllActivities,NumberOfAllActivities),
     create_grid(Grid,NumberOfWorkers,NumberOfAllActivities),
-    write("Created Empty Grid"),nl,
+    %write("Created Empty Grid"),nl,
     % The domain of the Grid
     Grid :: 0..1,  
-    % Row constraints
-    write("-------------Row constraints------------------"),nl,
-    row_constraints(Grid,AllActivities,MaxTime),
-    write("-------------Row constraints------------------"),nl,
-    % Column constraints
-    write("-------------Column constraints------------------"),nl,
-    transpose(NumberOfWorkers,NumberOfAllActivities,Grid,Transpose),
-    columns_constraints(Transpose),
-    write("-------------Column constraints------------------"),nl,
     % Mirroring constraints
+    %write("-------------Mirror constraints------------------"),nl,
     mirroring_constraints(Grid),
+    %write("-------------Mirror constraints------------------"),nl,
+    % Row constraints
+    %write("-------------Row constraints------------------"),nl,
+    row_constraints(Grid,AllActivities,MaxTime),
+    %write("-------------Row constraints------------------"),nl,
+    % Column constraints
+    %write("-------------Column constraints------------------"),nl,
+    transpose(Grid,Transpose),
+    columns_constraints(Transpose),
+    %write("-------------Column constraints------------------"),nl,
     % Search
     flatten(Grid,Flat),
-    write("Flattened and going to search"),nl,
-    search(Flat,0,input_order,indomain,complete,[]).
+    %write("Flattened and going to search"),nl,
+    %labeling(Flat).
+    search(Flat,0,most_constrained,indomain,complete,[]).
+   
 
 mirroring_constraints([]).
 mirroring_constraints([B1|BooleansList]):- % we need to somehow express that row n can only get a true value only if row n-1 has taken a true value
@@ -62,39 +61,40 @@ columns_constraints([Column|Rest]):-
     sumlist(Column,1),
     columns_constraints(Rest).
 
+row_constraints([],_,_).
 row_constraints([Booleans|BooleansList],Activities,MaxTime):-
     %member(Booleans,BooleansList),
-    write("Scheduling constraints"),nl,
+    %%write("Scheduling constraints"),nl,
     row_scheduling_constraints(Booleans,Activities),
-    write("Time constraints"),nl,
+    %%write("Time constraints"),nl,
     row_time_constraints(Booleans,Activities,MaxTime),
-    write("Recursive Call"),nl,
+    %%write("Recursive Call"),nl,
     row_constraints(BooleansList,Activities,MaxTime).
 
 row_scheduling_constraints(Booleans,Activities):-
-    write("Going into the seave with "),%write(Booleans),write(" "),write(Activities),
-    %nl,
+    %%write("Going into the seave"),nl,
+    write(Booleans),%write(" "),%write(Activities),nl,
     boolean_seave(Booleans,Activities,RemainingActivities),
-    %write(RemainingActivities),nl,
-    plausible_activities(RemainingActivities).
+    %%write(RemainingActivities),nl,
+    plausible_activities(RemainingActivities),!.
 
 plausible_activities([]).
 plausible_activities([_]).
 plausible_activities([activity(_, act(_,End1)),activity(_, act(Start2,End2))|Rest]):-
     Start2 #> End1,
-    plausible_activities([activity(_, act(Start2,End2))|Rest]),!.
+    plausible_activities([activity(_, act(Start2,End2))|Rest]).
 
 row_time_constraints([],_,T):-
     T#>=0.
 row_time_constraints([Bool|Row],[Activity|RestActivities],Time):-
     Time #>= 0,
-    %write(Time), nl,
+    %%write(Time), nl,
     activity_duration(Activity,Duration),
     RemainingTime #= Time - (Bool*Duration),
     row_time_constraints(Row,RestActivities,RemainingTime).
 
 activity_duration(activity(_, act(Start,End)),Duration):-
-    Duration #= End - Start.
+    Duration #= End - Start,!.
 
 transpose([], []).
 transpose([F|Fs], Ts) :-
@@ -106,7 +106,3 @@ transpose([_|Rs], Ms, [Ts|Tss]) :-
 lists_firsts_rests([], [], []).
 lists_firsts_rests([[F|Os]|Rest], [F|Fs], [Os|Oss]) :-
         lists_firsts_rests(Rest, Fs, Oss).
-
-
-
-    

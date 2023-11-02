@@ -8,3 +8,23 @@ index(Index3,Flat,3),mod(Index3,NumberOfColumns,Row3),Row3==0,index(3,Transpose,
 index(Index4,Flat,4),mod(Index4,NumberOfColumns,Row4),Row4\=0,index(Row4,Transpose,R4),member(4,R4),!,
 index(Index5,Flat,5),mod(Index5,NumberOfColumns,Row5),Row5\=0,index(Row5,Transpose,R5),member(5,R5),!,
 index(Index6,Flat,6),mod(Index6,NumberOfColumns,Row6),Row6==0,index(3,Transpose,R6),member(6,R6),!,helper_transpose(_,[],_,Transpose).
+
+activity(a01, act(0,3)),
+activity(a02, act(0,4)).
+activity(a05, act(6,8)).
+activity(a06, act(6,9)).
+activity(a07, act(9,10)).
+activity(a08, act(9,13)).
+activity(a09, act(11,14)).
+activity(a10, act(12,15)).
+activity(a11, act(14,17)).
+activity(a12, act(16,18)).
+activity(a13, act(17,19)).
+activity(a14, act(18,20)).
+activity(a15, act(19,20)).
+
+assignment_csp(3, 14, [[0,0,1,0,1,0,1,0,1,0,0,1,0,0,1],[1,0,0,1,0,0,0,1,0,0,1,0,0,1,0],[0,1,0,0,0,1,0,0,0,1,0,0,1,0,0]]).
+
+row_constraints(Grid,[activity(a01, act(0,3)),activity(a02, act(0,4)),activity(a05, act(6,8))],MaxTime),
+
+assignment_csp(3, 14, [[0,0,1,0,1,0,1,0,1,0,0,1,0,0,1],[1,0,0,1,0,0,0,1,0,0,1,0,0,1,0],[0,1,0,0,0,1,0,0,0,1,0,0,1,0,0]]).
